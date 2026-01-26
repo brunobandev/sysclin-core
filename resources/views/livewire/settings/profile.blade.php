@@ -7,6 +7,14 @@
         <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
             <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
 
+            <flux:input :value="auth()->user()->role->label()" :label="__('Perfil')" type="text" disabled />
+
+            @if (auth()->user()->role->requiresCrmCoren())
+                <flux:input wire:model="crm_coren" :label="__('CRM/COREN')" type="text" placeholder="Ex: 123456/SP" />
+            @endif
+
+            <flux:input wire:model="specialty" :label="__('Especialidade')" type="text" placeholder="Ex: Cardiologia" />
+
             <div>
                 <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
 

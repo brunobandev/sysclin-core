@@ -9,6 +9,8 @@ use Flux\Flux;
 new #[Title('Sedes')] class extends Component {
     public ?Facility $editing = null;
     public string $name = '';
+    public string $address = '';
+    public string $phone = '';
 
     #[Computed]
     public function facilities()
@@ -20,6 +22,8 @@ new #[Title('Sedes')] class extends Component {
     {
         $this->editing = null;
         $this->name = '';
+        $this->address = '';
+        $this->phone = '';
 
         $this->modal('facility-form')->show();
     }
@@ -28,6 +32,8 @@ new #[Title('Sedes')] class extends Component {
     {
         $this->editing = $facility;
         $this->name = $facility->name;
+        $this->address = $facility->address ?? '';
+        $this->phone = $facility->phone ?? '';
 
         $this->modal('facility-form')->show();
     }
@@ -36,6 +42,8 @@ new #[Title('Sedes')] class extends Component {
     {
         $validated = $this->validate([
             'name' => 'required|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:20',
         ]);
 
         if ($this->editing) {
@@ -79,6 +87,8 @@ new #[Title('Sedes')] class extends Component {
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>Nome</flux:table.column>
+                    <flux:table.column>Endereço</flux:table.column>
+                    <flux:table.column>Telefone</flux:table.column>
                     <flux:table.column>Cadastrada em</flux:table.column>
                     <flux:table.column></flux:table.column>
                 </flux:table.columns>
@@ -87,6 +97,8 @@ new #[Title('Sedes')] class extends Component {
                     @foreach ($this->facilities as $facility)
                         <flux:table.row :key="$facility->id">
                             <flux:table.cell class="font-medium">{{ $facility->name }}</flux:table.cell>
+                            <flux:table.cell>{{ $facility->address ?? '-' }}</flux:table.cell>
+                            <flux:table.cell>{{ $facility->phone ?? '-' }}</flux:table.cell>
                             <flux:table.cell>{{ $facility->created_at->format('d/m/Y H:i') }}</flux:table.cell>
                             <flux:table.cell>
                                 <flux:button variant="ghost" icon="pencil-square" size="sm" inset="top bottom" wire:click="edit({{ $facility->id }})" />
@@ -105,7 +117,13 @@ new #[Title('Sedes')] class extends Component {
                 <flux:subheading>{{ $editing ? 'Atualize os dados da sede.' : 'Preencha os dados para cadastrar uma nova sede.' }}</flux:subheading>
             </div>
 
-            <flux:input wire:model="name" label="Nome" placeholder="Ex: Sede Principal" />
+            <div class="space-y-6">
+                <flux:input wire:model="name" label="Nome" placeholder="Ex: Sede Principal" />
+
+                <flux:input wire:model="address" label="Endereço" placeholder="Ex: Rua das Flores, 123" />
+
+                <flux:input wire:model="phone" label="Telefone" placeholder="(00) 00000-0000" />
+            </div>
 
             <div class="flex">
                 <flux:spacer />

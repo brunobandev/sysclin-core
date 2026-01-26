@@ -21,6 +21,44 @@
                     <flux:sidebar.item icon="users" :href="route('patient.list')" :current="request()->routeIs('patient.list')" wire:navigate>
                         {{ __('Pacientes') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="heart" :href="route('chronic-medication.list')" :current="request()->routeIs('chronic-medication.list')" wire:navigate>
+                        {{ __('Medicações Crônicas') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                @can('manage-medical-records')
+                    @if (Route::has('medical-record.list'))
+                        <flux:sidebar.group :heading="__('Clínico')" class="grid">
+                            <flux:sidebar.item icon="clipboard-document-list" :href="route('medical-record.list')" :current="request()->routeIs('medical-record.list')" wire:navigate>
+                                {{ __('Prontuários') }}
+                            </flux:sidebar.item>
+                            @if (Route::has('prescription.list'))
+                                <flux:sidebar.item icon="document-text" :href="route('prescription.list')" :current="request()->routeIs('prescription.list')" wire:navigate>
+                                    {{ __('Receituários') }}
+                                </flux:sidebar.item>
+                            @endif
+                        </flux:sidebar.group>
+                    @endif
+                @endcan
+
+                @can('manage-certificate-templates')
+                    @if (Route::has('prescription-template.list') || Route::has('certificate-template.list'))
+                        <flux:sidebar.group :heading="__('Modelos')" class="grid">
+                            @if (Route::has('prescription-template.list'))
+                                <flux:sidebar.item icon="document-duplicate" :href="route('prescription-template.list')" :current="request()->routeIs('prescription-template.list')" wire:navigate>
+                                    {{ __('Modelos de Receituário') }}
+                                </flux:sidebar.item>
+                            @endif
+                            @if (Route::has('certificate-template.list'))
+                                <flux:sidebar.item icon="document-check" :href="route('certificate-template.list')" :current="request()->routeIs('certificate-template.list')" wire:navigate>
+                                    {{ __('Modelos de Atestado') }}
+                                </flux:sidebar.item>
+                            @endif
+                        </flux:sidebar.group>
+                    @endif
+                @endcan
+
+                <flux:sidebar.group :heading="__('Cadastros')" class="grid">
                     <flux:sidebar.item icon="rectangle-stack" :href="route('health-insurance.list')" :current="request()->routeIs('health-insurance.list')" wire:navigate>
                         {{ __('Planos de saúde') }}
                     </flux:sidebar.item>

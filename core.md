@@ -1,0 +1,82 @@
+### Core
+
+- Paciente
+	- Nome *
+	- Sexo (M, F, NA)
+	- Data de nascimento *
+	- Telefone *
+	- Foto
+- Usuario
+	- Nome
+	- Nome de usuario
+	- Senha
+- Perfil do usuario
+	- Descricao
+		- Medico
+		- Secretario
+		- Tecnico
+	- CRM/Coren -> para secretaria nao tem.
+	- Especialidade
+- Convenio
+	- Nome
+- Tipo agendamento
+	- Descrição
+	- Cor
+- Agendamento
+	- Data / Horario (inicio e fim)
+	- Paciente
+	- Medico
+	- Tipo agendamento `tipo_consulta` tabela
+		- Consulta (Tempo de atendimento(inicio e fim))
+		- Exame (Procedimento)?
+		- ...
+	- Status do agendamento
+		- `status_consulta` tabela
+	- Convenio (Particular pre cadastrado)
+	- Motivo
+	- Sala
+- Sedes
+	- Nome
+	- Endereço
+	- Telefone
+- Salas
+	- Nome
+	- Sede
+- Prontuario
+	- Paciente
+	- Medico
+	- Data criação
+	- Motivo
+	- doenca/cid (talvez retornar de API)
+	- subjetivo
+	- objetido
+	- exames
+	- impressao
+	- conduta
+	- descrição
+	- adicionar fotos no prontuário (tudo dentro do sistema)
+- Receituário
+	- Paciente
+	- Medico
+	- Tipo (simples, controle especial, hard coded)
+	- Tipo do uso -> imagem no zap
+	- Doenca/CID (nao obrigatorio)
+	- Modelo receituario (nao precisa salvar no banco)
+	- Observacoes
+- Receituario item
+	- Receituario
+	- medicamento
+	- quantidate
+	- frequencia
+	- tipo uso
+- Modelos de Atestado
+	- Nome
+	- Conteudo
+	- CID em caso de atestados
+- Modelos de Receituario
+	- Receituario
+	- Medico
+	- Nome
+- Medicacoes cronicas (campo de texto)
+	- Paciente
+	- Medicacoes (campo de texto)

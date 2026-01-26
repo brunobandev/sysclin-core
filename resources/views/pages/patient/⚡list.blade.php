@@ -11,6 +11,7 @@ new #[Title('Pacientes')] class extends Component {
     public string $name = '';
     public string $dob = '';
     public string $gender = '';
+    public string $phone = '';
 
     #[Computed]
     public function patients()
@@ -24,6 +25,7 @@ new #[Title('Pacientes')] class extends Component {
         $this->name = '';
         $this->dob = '';
         $this->gender = '';
+        $this->phone = '';
 
         $this->modal('patient-form')->show();
     }
@@ -34,6 +36,7 @@ new #[Title('Pacientes')] class extends Component {
         $this->name = $patient->name;
         $this->dob = $patient->dob;
         $this->gender = $patient->gender ?? '';
+        $this->phone = $patient->phone ?? '';
 
         $this->modal('patient-form')->show();
     }
@@ -44,6 +47,7 @@ new #[Title('Pacientes')] class extends Component {
             'name' => 'required|string|max:255',
             'dob' => 'required|date',
             'gender' => 'nullable|string',
+            'phone' => 'nullable|string|max:20',
         ]);
 
         if ($this->editing) {
@@ -88,6 +92,7 @@ new #[Title('Pacientes')] class extends Component {
                 <flux:table.columns>
                     <flux:table.column>Nome</flux:table.column>
                     <flux:table.column>Nascimento</flux:table.column>
+                    <flux:table.column>Telefone</flux:table.column>
                     <flux:table.column>Gênero</flux:table.column>
                     <flux:table.column>Cadastrado em</flux:table.column>
                     <flux:table.column></flux:table.column>
@@ -98,6 +103,7 @@ new #[Title('Pacientes')] class extends Component {
                         <flux:table.row :key="$patient->id">
                             <flux:table.cell class="font-medium">{{ $patient->name }}</flux:table.cell>
                             <flux:table.cell>{{ \Carbon\Carbon::parse($patient->dob)->format('d/m/Y') }}</flux:table.cell>
+                            <flux:table.cell>{{ $patient->phone ?? '-' }}</flux:table.cell>
                             <flux:table.cell>{{ $patient->gender ?? '-' }}</flux:table.cell>
                             <flux:table.cell>{{ $patient->created_at->format('d/m/Y H:i') }}</flux:table.cell>
                             <flux:table.cell>
@@ -121,6 +127,8 @@ new #[Title('Pacientes')] class extends Component {
                 <flux:input wire:model="name" label="Nome completo" placeholder="Ex: João Silva" />
 
                 <flux:date-picker wire:model="dob" label="Data de nascimento" selectable-header />
+
+                <flux:input wire:model="phone" label="Telefone" placeholder="(00) 00000-0000" />
 
                 <flux:select wire:model="gender" label="Gênero" placeholder="Selecione...">
                     <flux:select.option value="Masculino">Masculino</flux:select.option>

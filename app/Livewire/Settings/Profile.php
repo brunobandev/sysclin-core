@@ -17,6 +17,10 @@ class Profile extends Component
 
     public string $email = '';
 
+    public string $crm_coren = '';
+
+    public string $specialty = '';
+
     /**
      * Mount the component.
      */
@@ -24,6 +28,8 @@ class Profile extends Component
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
+        $this->crm_coren = Auth::user()->crm_coren ?? '';
+        $this->specialty = Auth::user()->specialty ?? '';
     }
 
     /**
@@ -33,7 +39,11 @@ class Profile extends Component
     {
         $user = Auth::user();
 
-        $validated = $this->validate($this->profileRules($user->id));
+        $validated = $this->validate([
+            ...$this->profileRules($user->id),
+            'crm_coren' => 'nullable|string|max:255',
+            'specialty' => 'nullable|string|max:255',
+        ]);
 
         $user->fill($validated);
 

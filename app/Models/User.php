@@ -3,7 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -23,6 +25,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'crm_coren',
+        'specialty',
     ];
 
     /**
@@ -47,12 +52,38 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
+    }
+
+    public function isDoctor(): bool
+    {
+        return $this->role === UserRole::Medico;
+    }
+
+    public function isSecretary(): bool
+    {
+        return $this->role === UserRole::Secretario;
+    }
+
+    public function isTechnician(): bool
+    {
+        return $this->role === UserRole::Tecnico;
     }
 
     /**
      * Get the user's initials
      */
+    public function medicalRecords(): HasMany
+    {
+        return $this->hasMany(MedicalRecord::class);
+    }
+
+    public function prescriptions(): HasMany
+    {
+        return $this->hasMany(Prescription::class);
+    }
+
     public function initials(): string
     {
         return Str::of($this->name)
