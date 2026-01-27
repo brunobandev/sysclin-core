@@ -375,15 +375,31 @@ Sistema de autorização baseado em banco de dados com roles e permissions (many
 
 ---
 
+## Calendar (Agenda)
+
+- **CDN:** `fullcalendar-scheduler@6.1.10` (includes premium Resource plugins)
+- **Default view:** `resourceTimeGridDay` — rooms displayed as columns
+- **Views available:** Dia (Salas), Semana, Mês
+- **License key:** `schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source'`
+
+**Calendar integration (Alpine.js):**
+- `resources` — rooms mapped to `[{id, title}]` via `calendarResources` computed property
+- `events` — appointments include `resourceId` mapped to `room_id`
+- `select` callback pre-fills room when clicking in a room column
+- `refreshCalendar` Livewire event refreshes both events and resources
+
+---
+
 ## Testes
 
-**114 tests, 254 assertions** — todos passando.
+**124 tests, 287 assertions** — todos passando.
 
 | Test File | Count |
 |-----------|-------|
 | `tests/Feature/UserRoleTest.php` | 12 |
 | `tests/Feature/RoleTest.php` | 8 |
 | `tests/Feature/UserManagementTest.php` | 5 |
+| `tests/Feature/AppointmentTest.php` | 10 |
 | `tests/Feature/MedicalRecordTest.php` | 11 |
 | `tests/Feature/PrescriptionTest.php` | 11 |
 | `tests/Feature/PrescriptionTemplateTest.php` | 9 |

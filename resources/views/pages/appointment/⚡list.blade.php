@@ -65,25 +65,39 @@ class extends Component {
     }
 
     #[Computed]
-    public function events()
+    public function calendarResources(): \Illuminate\Support\Collection
+    {
+        return $this->rooms->map(fn(Room $room) => [
+            'id' => (string) $room->id,
+            'title' => $room->name,
+        ]);
+    }
+
+    #[Computed]
+    public function events(): \Illuminate\Support\Collection
     {
         return Appointment::with(['patient', 'type'])
             ->get()
-            ->map(fn($app) => [
+            ->map(fn(Appointment $app) => [
                 'id' => $app->id,
                 'title' => $app->patient->name . ' (' . $app->type->name . ')',
                 'start' => $app->start_at->toIso8601String(),
                 'end' => $app->end_at->toIso8601String(),
                 'backgroundColor' => $app->type->color ?? '#3b82f6',
+                'resourceId' => (string) $app->room_id,
             ]);
     }
 
-    public function create($start = null)
+    public function create(?string $start = null, ?string $roomId = null): void
     {
         $this->editing = null;
         $this->reset(['patient_id', 'user_id', 'room_id', 'type_id', 'status_id', 'health_insurance_id', 'notes']);
         $this->start_at = $start ?? now()->format('Y-m-d\TH:i');
         $this->end_at = $start ? Carbon::parse($start)->addHour()->format('Y-m-d\TH:i') : now()->addHour()->format('Y-m-d\TH:i');
+
+        if ($roomId) {
+            $this->room_id = $roomId;
+        }
 
         $this->modal('appointment-form')->show();
     }
@@ -142,9 +156,14 @@ class extends Component {
         $this->dispatch('refreshCalendar');
     }
 
-    public function getEvents()
+    public function getEvents(): \Illuminate\Support\Collection
     {
         return $this->events;
+    }
+
+    public function getResources(): \Illuminate\Support\Collection
+    {
+        return $this->calendarResources;
     }
 };
 ?>
@@ -165,19 +184,30 @@ class extends Component {
          x-data="{
             calendar: null,
             init() {
+                const hasRooms = @js($this->calendarResources->isNotEmpty());
+
                 this.calendar = new FullCalendar.Calendar(this.$refs.calendar, {
-                    initialView: 'timeGridWeek',
+                    schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
+                    initialView: hasRooms ? 'resourceTimeGridDay' : 'timeGridDay',
                     locale: 'pt-br',
                     headerToolbar: {
                         left: 'prev,next today',
                         center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        right: 'resourceTimeGridDay,timeGridWeek,dayGridMonth'
                     },
+                    buttonText: {
+                        resourceTimeGridDay: 'Dia (Salas)',
+                    },
+                    resources: @js($this->calendarResources),
                     events: @js($this->events),
                     editable: true,
                     selectable: true,
+                    slotMinTime: '06:00:00',
+                    slotMaxTime: '22:00:00',
+                    allDaySlot: false,
                     select: (info) => {
-                        $wire.create(info.startStr.slice(0, 16));
+                        const resourceId = info.resource ? info.resource.id : null;
+                        $wire.create(info.startStr.slice(0, 16), resourceId);
                     },
                     eventClick: (info) => {
                         $wire.edit(info.event.id);
@@ -189,6 +219,10 @@ class extends Component {
                     $wire.getEvents().then(events => {
                         this.calendar.removeAllEvents();
                         this.calendar.addEventSource(events);
+                    });
+                    $wire.getResources().then(resources => {
+                        this.calendar.getResources().forEach(r => r.remove());
+                        resources.forEach(r => this.calendar.addResource(r));
                     });
                 });
             }
