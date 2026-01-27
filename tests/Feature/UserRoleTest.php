@@ -1,43 +1,51 @@
 <?php
 
-use App\Enums\UserRole;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 
-test('user role is cast to enum', function () {
-    $user = User::factory()->doctor()->create();
-
-    expect($user->role)->toBe(UserRole::Medico);
-});
-
-test('default factory user is a secretary', function () {
+test('default factory user has no roles', function () {
     $user = User::factory()->create();
 
-    expect($user->role)->toBe(UserRole::Secretario);
+    expect($user->roles)->toHaveCount(0);
 });
 
-test('isDoctor returns true for doctors', function () {
+test('doctor factory state assigns medico role', function () {
     $user = User::factory()->doctor()->create();
 
-    expect($user->isDoctor())->toBeTrue();
-    expect($user->isSecretary())->toBeFalse();
-    expect($user->isTechnician())->toBeFalse();
+    expect($user->hasRole('medico'))->toBeTrue();
 });
 
-test('isSecretary returns true for secretaries', function () {
+test('secretary factory state assigns secretario role', function () {
     $user = User::factory()->secretary()->create();
 
-    expect($user->isSecretary())->toBeTrue();
-    expect($user->isDoctor())->toBeFalse();
+    expect($user->hasRole('secretario'))->toBeTrue();
 });
 
-test('isTechnician returns true for technicians', function () {
+test('technician factory state assigns tecnico role', function () {
     $user = User::factory()->technician()->create();
 
-    expect($user->isTechnician())->toBeTrue();
-    expect($user->isDoctor())->toBeFalse();
+    expect($user->hasRole('tecnico'))->toBeTrue();
 });
 
-test('doctor can manage clinical features', function () {
+test('user can have multiple roles', function () {
+    $user = User::factory()->doctor()->create();
+    $secretarioRole = Role::where('name', 'secretario')->first();
+    $user->roles()->attach($secretarioRole);
+
+    expect($user->roles)->toHaveCount(2);
+    expect($user->hasRole('medico'))->toBeTrue();
+    expect($user->hasRole('secretario'))->toBeTrue();
+});
+
+test('hasAnyRole works correctly', function () {
+    $user = User::factory()->doctor()->create();
+
+    expect($user->hasAnyRole(['medico', 'secretario']))->toBeTrue();
+    expect($user->hasAnyRole(['secretario', 'tecnico']))->toBeFalse();
+});
+
+test('doctor can manage clinical features through role permissions', function () {
     $user = User::factory()->doctor()->create();
 
     $this->actingAs($user);
@@ -68,10 +76,24 @@ test('technician cannot manage clinical features', function () {
     expect($user->can('manage-prescriptions'))->toBeFalse();
 });
 
-test('crm_coren is required for doctors and technicians but not secretaries', function () {
-    expect(UserRole::Medico->requiresCrmCoren())->toBeTrue();
-    expect(UserRole::Tecnico->requiresCrmCoren())->toBeTrue();
-    expect(UserRole::Secretario->requiresCrmCoren())->toBeFalse();
+test('user with direct permission can access feature', function () {
+    $user = User::factory()->secretary()->create();
+    $permission = Permission::where('name', 'manage-medical-records')->first();
+    $user->permissions()->attach($permission);
+
+    $this->actingAs($user);
+
+    expect($user->can('manage-medical-records'))->toBeTrue();
+});
+
+test('requiresCrmCoren returns true for medico and tecnico roles', function () {
+    $doctor = User::factory()->doctor()->create();
+    $technician = User::factory()->technician()->create();
+    $secretary = User::factory()->secretary()->create();
+
+    expect($doctor->requiresCrmCoren())->toBeTrue();
+    expect($technician->requiresCrmCoren())->toBeTrue();
+    expect($secretary->requiresCrmCoren())->toBeFalse();
 });
 
 test('profile page shows role fields', function () {

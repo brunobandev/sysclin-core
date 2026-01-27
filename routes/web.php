@@ -20,5 +20,7 @@ Route::livewire('receituarios', 'pages::prescription.list')->middleware('can:man
 Route::livewire('modelos-receituario', 'pages::prescription-template.list')->middleware('can:manage-prescription-templates')->name('prescription-template.list');
 Route::livewire('modelos-atestado', 'pages::certificate-template.list')->middleware('can:manage-certificate-templates')->name('certificate-template.list');
 Route::livewire('medicacoes-cronicas', 'pages::chronic-medication.list')->name('chronic-medication.list');
+Route::livewire('cargos', 'pages::role.list')->middleware('can:manage-roles')->name('role.list');
+Route::livewire('usuarios', 'pages::user.list')->middleware('can:manage-roles')->name('user.list');
 
 require __DIR__.'/settings.php';

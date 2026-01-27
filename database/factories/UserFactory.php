@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Enums\UserRole;
+use App\Models\Role;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -33,7 +33,6 @@ class UserFactory extends Factory
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
-            'role' => UserRole::Secretario,
         ];
     }
 
@@ -47,28 +46,28 @@ class UserFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the model has two-factor authentication configured.
-     */
     public function doctor(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => UserRole::Medico,
-        ]);
+        return $this->afterCreating(function ($user): void {
+            $role = Role::firstOrCreate(['name' => 'medico'], ['label' => 'Médico']);
+            $user->roles()->syncWithoutDetaching($role);
+        });
     }
 
     public function secretary(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => UserRole::Secretario,
-        ]);
+        return $this->afterCreating(function ($user): void {
+            $role = Role::firstOrCreate(['name' => 'secretario'], ['label' => 'Secretário']);
+            $user->roles()->syncWithoutDetaching($role);
+        });
     }
 
     public function technician(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => UserRole::Tecnico,
-        ]);
+        return $this->afterCreating(function ($user): void {
+            $role = Role::firstOrCreate(['name' => 'tecnico'], ['label' => 'Técnico']);
+            $user->roles()->syncWithoutDetaching($role);
+        });
     }
 
     public function withTwoFactor(): static

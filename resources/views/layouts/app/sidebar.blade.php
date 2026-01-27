@@ -58,6 +58,21 @@
                     @endif
                 @endcan
 
+                @can('manage-roles')
+                    <flux:sidebar.group :heading="__('Administração')" class="grid">
+                        @if (Route::has('role.list'))
+                            <flux:sidebar.item icon="shield-check" :href="route('role.list')" :current="request()->routeIs('role.list')" wire:navigate>
+                                {{ __('Cargos') }}
+                            </flux:sidebar.item>
+                        @endif
+                        @if (Route::has('user.list'))
+                            <flux:sidebar.item icon="user-group" :href="route('user.list')" :current="request()->routeIs('user.list')" wire:navigate>
+                                {{ __('Usuários') }}
+                            </flux:sidebar.item>
+                        @endif
+                    </flux:sidebar.group>
+                @endcan
+
                 <flux:sidebar.group :heading="__('Cadastros')" class="grid">
                     <flux:sidebar.item icon="rectangle-stack" :href="route('health-insurance.list')" :current="request()->routeIs('health-insurance.list')" wire:navigate>
                         {{ __('Planos de saúde') }}

@@ -8,7 +8,6 @@ Documentação das entidades implementadas no sistema. Todos os nomes de modelos
 
 - **Model:** `App\Models\User`
 - **Table:** `users`
-- **Enum:** `App\Enums\UserRole` (Doctor, Secretary, Technician)
 - **Auth:** Laravel Fortify (login, registro, 2FA)
 
 | Column | Type | Notes |
@@ -18,7 +17,6 @@ Documentação das entidades implementadas no sistema. Todos os nomes de modelos
 | email | varchar | unique |
 | email_verified_at | datetime | nullable |
 | password | varchar | |
-| role | varchar | UserRole enum (doctor, secretary, technician) |
 | crm_coren | varchar | nullable, não se aplica a secretária |
 | specialty | varchar | nullable |
 | remember_token | varchar | nullable |
@@ -26,8 +24,48 @@ Documentação das entidades implementadas no sistema. Todos os nomes de modelos
 | two_factor_recovery_codes | text | nullable |
 | two_factor_confirmed_at | datetime | nullable |
 
-**Relationships:** `medicalRecords(): HasMany`, `prescriptions(): HasMany`
-**Helper methods:** `isDoctor()`, `isSecretary()`, `isTechnician()`
+**Relationships:** `roles(): BelongsToMany`, `permissions(): BelongsToMany`, `medicalRecords(): HasMany`, `prescriptions(): HasMany`
+**Methods:** `hasRole(string)`, `hasAnyRole(array)`, `hasPermission(string)`, `getAllPermissions()`, `roleLabels()`, `requiresCrmCoren()`
+
+---
+
+## Role (Cargo)
+
+- **Model:** `App\Models\Role`
+- **Table:** `roles`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | integer | PK |
+| name | varchar | unique, slug (ex: medico) |
+| label | varchar | label de exibição (ex: Médico) |
+
+**Relationships:** `users(): BelongsToMany`, `permissions(): BelongsToMany`
+**Default roles:** medico, secretario, tecnico
+
+---
+
+## Permission (Permissão)
+
+- **Model:** `App\Models\Permission`
+- **Table:** `permissions`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | integer | PK |
+| name | varchar | unique, slug (ex: manage-medical-records) |
+| label | varchar | label de exibição (ex: Gerenciar Prontuários) |
+
+**Relationships:** `roles(): BelongsToMany`, `users(): BelongsToMany`
+**Default permissions:** manage-medical-records, manage-prescriptions, manage-prescription-templates, manage-certificate-templates, manage-roles
+
+---
+
+## Pivot Tables (Autorização)
+
+- **`role_user`** — FK role_id + user_id (unique pair)
+- **`permission_role`** — FK permission_id + role_id (unique pair)
+- **`permission_user`** — FK permission_id + user_id (unique pair, permissões diretas)
 
 ---
 
@@ -301,6 +339,8 @@ Documentação das entidades implementadas no sistema. Todos os nomes de modelos
 | `/modelos-receituario` | `pages::prescription-template.list` | `prescription-template.list` | `can:manage-prescription-templates` |
 | `/modelos-atestado` | `pages::certificate-template.list` | `certificate-template.list` | `can:manage-certificate-templates` |
 | `/medicacoes-cronicas` | `pages::chronic-medication.list` | `chronic-medication.list` | auth (Folio) |
+| `/cargos` | `pages::role.list` | `role.list` | `can:manage-roles` |
+| `/usuarios` | `pages::user.list` | `user.list` | `can:manage-roles` |
 
 ---
 
@@ -309,32 +349,44 @@ Documentação das entidades implementadas no sistema. Todos os nomes de modelos
 - **Platform:** Dashboard, Agenda, Pacientes, Medicações Crônicas
 - **Clínico** (`@can('manage-medical-records')`): Prontuários, Receituários
 - **Modelos** (`@can('manage-certificate-templates')`): Modelos de Receituário, Modelos de Atestado
+- **Administração** (`@can('manage-roles')`): Cargos, Usuários
 - **Cadastros:** Planos de saúde, Salas, Sedes
 
 ---
 
-## Authorization Gates
+## Authorization
 
-| Gate | Allowed Roles |
-|------|---------------|
-| `manage-medical-records` | Doctor |
-| `manage-prescriptions` | Doctor |
-| `manage-prescription-templates` | Doctor |
-| `manage-certificate-templates` | Doctor |
+Sistema de autorização baseado em banco de dados com roles e permissions (many-to-many).
 
-Definidos em `app/Providers/AppServiceProvider.php`.
+- **`Gate::before()`** em `AppServiceProvider` verifica `$user->hasPermission($ability)` — suporta permissões diretas e via roles
+- Usuários podem ter múltiplos roles
+- Roles possuem múltiplas permissions
+- Usuários podem ter permissões diretas (bypass de roles)
+
+### Default Permissions (seeded para role medico)
+
+| Permission | Label |
+|------------|-------|
+| `manage-medical-records` | Gerenciar Prontuários |
+| `manage-prescriptions` | Gerenciar Receituários |
+| `manage-prescription-templates` | Gerenciar Modelos de Receituário |
+| `manage-certificate-templates` | Gerenciar Modelos de Atestado |
+| `manage-roles` | Gerenciar Cargos |
 
 ---
 
 ## Testes
 
-**99 tests, 224 assertions** — todos passando.
+**114 tests, 254 assertions** — todos passando.
 
 | Test File | Count |
 |-----------|-------|
+| `tests/Feature/UserRoleTest.php` | 12 |
+| `tests/Feature/RoleTest.php` | 8 |
+| `tests/Feature/UserManagementTest.php` | 5 |
 | `tests/Feature/MedicalRecordTest.php` | 11 |
 | `tests/Feature/PrescriptionTest.php` | 11 |
 | `tests/Feature/PrescriptionTemplateTest.php` | 9 |
 | `tests/Feature/CertificateTemplateTest.php` | 8 |
 | `tests/Feature/ChronicMedicationTest.php` | 7 |
-| Other existing tests | 53 |
+| Other existing tests | 43 |

@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Enums\UserRole;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -32,10 +31,7 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureGates(): void
     {
-        Gate::define('manage-medical-records', fn (User $user) => $user->role === UserRole::Medico);
-        Gate::define('manage-prescriptions', fn (User $user) => $user->role === UserRole::Medico);
-        Gate::define('manage-certificate-templates', fn (User $user) => $user->role === UserRole::Medico);
-        Gate::define('manage-prescription-templates', fn (User $user) => $user->role === UserRole::Medico);
+        Gate::before(fn (User $user, string $ability) => $user->hasPermission($ability) ?: null);
     }
 
     protected function configureDefaults(): void
