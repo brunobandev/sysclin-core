@@ -28,6 +28,12 @@ class extends Component {
     public string $end_at = '';
     public string $notes = '';
 
+    // Quick-create patient fields
+    public string $new_patient_name = '';
+    public string $new_patient_dob = '';
+    public string $new_patient_phone = '';
+    public string $new_patient_gender = '';
+
     #[Computed]
     public function patients()
     {
@@ -156,6 +162,36 @@ class extends Component {
         $this->dispatch('refreshCalendar');
     }
 
+    public function createQuickPatient(): void
+    {
+        $this->reset(['new_patient_name', 'new_patient_dob', 'new_patient_phone', 'new_patient_gender']);
+        $this->modal('patient-quick-form')->show();
+    }
+
+    public function saveQuickPatient(): void
+    {
+        $validated = $this->validate([
+            'new_patient_name' => 'required|string|max:255',
+            'new_patient_dob' => 'required|date',
+            'new_patient_phone' => 'nullable|string|max:20',
+            'new_patient_gender' => 'nullable|string',
+        ]);
+
+        $patient = Patient::create([
+            'name' => $validated['new_patient_name'],
+            'dob' => $validated['new_patient_dob'],
+            'phone' => $validated['new_patient_phone'] ?: null,
+            'gender' => $validated['new_patient_gender'] ?: null,
+        ]);
+
+        $this->patient_id = (string) $patient->id;
+
+        unset($this->patients);
+
+        $this->modal('patient-quick-form')->close();
+        Flux::toast(text: 'Paciente criado com sucesso.', variant: 'success');
+    }
+
     public function getEvents(): \Illuminate\Support\Collection
     {
         return $this->events;
@@ -242,11 +278,16 @@ class extends Component {
             </div>
 
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <flux:select wire:model="patient_id" label="Paciente" placeholder="Selecione..." filterable>
-                    @foreach ($this->patients as $patient)
-                        <flux:select.option :value="$patient->id">{{ $patient->name }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                <div class="flex items-end gap-2">
+                    <div class="flex-1">
+                        <flux:select wire:model="patient_id" wire:key="patient-select-{{ $patient_id }}" label="Paciente" placeholder="Selecione..." filterable>
+                            @foreach ($this->patients as $patient)
+                                <flux:select.option :value="$patient->id">{{ $patient->name }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    </div>
+                    <flux:button icon="plus" size="sm" variant="ghost" wire:click="createQuickPatient" title="Novo paciente" />
+                </div>
 
                 <flux:select wire:model="user_id" label="Profissional" placeholder="Selecione..." filterable>
                     @foreach ($this->users as $user)
@@ -286,6 +327,34 @@ class extends Component {
 
             <div class="flex">
                 <flux:spacer/>
+                <flux:modal.close>
+                    <flux:button variant="ghost">Cancelar</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary" class="ml-2">Salvar</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    <flux:modal name="patient-quick-form" class="md:w-96">
+        <form wire:submit="saveQuickPatient" class="space-y-6">
+            <div>
+                <flux:heading size="lg">Novo paciente</flux:heading>
+                <flux:subheading>Preencha os dados para cadastrar um novo paciente.</flux:subheading>
+            </div>
+
+            <div class="space-y-6">
+                <flux:input wire:model="new_patient_name" label="Nome completo" placeholder="Ex: João Silva" />
+                <flux:date-picker wire:model="new_patient_dob" label="Data de nascimento" selectable-header locale="pt-BR" />
+                <flux:input wire:model="new_patient_phone" label="Telefone" placeholder="(00) 00000-0000" />
+                <flux:select wire:model="new_patient_gender" label="Gênero" placeholder="Selecione...">
+                    <flux:select.option value="Masculino">Masculino</flux:select.option>
+                    <flux:select.option value="Feminino">Feminino</flux:select.option>
+                    <flux:select.option value="Outro">Outro</flux:select.option>
+                </flux:select>
+            </div>
+
+            <div class="flex">
+                <flux:spacer />
                 <flux:modal.close>
                     <flux:button variant="ghost">Cancelar</flux:button>
                 </flux:modal.close>

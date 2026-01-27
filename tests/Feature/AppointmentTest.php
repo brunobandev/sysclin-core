@@ -153,3 +153,45 @@ test('calendar resources are derived from rooms', function () {
     expect($resource)->not->toBeNull();
     expect($resource['title'])->toBe('Sala 01');
 });
+
+test('a patient can be quick-created from the appointment page', function () {
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test('pages::appointment.list')
+        ->call('createQuickPatient')
+        ->set('new_patient_name', 'Carlos Souza')
+        ->set('new_patient_dob', '1990-05-15')
+        ->set('new_patient_phone', '(11) 99999-0000')
+        ->set('new_patient_gender', 'Masculino')
+        ->call('saveQuickPatient')
+        ->assertHasNoErrors();
+
+    $patient = Patient::where('name', 'Carlos Souza')->first();
+    expect($patient)->not->toBeNull();
+    expect($patient->dob)->toBe('1990-05-15');
+});
+
+test('quick-create patient auto-selects the new patient', function () {
+    $this->actingAs(User::factory()->create());
+
+    $component = Livewire::test('pages::appointment.list')
+        ->call('createQuickPatient')
+        ->set('new_patient_name', 'Ana Lima')
+        ->set('new_patient_dob', '1985-03-20')
+        ->call('saveQuickPatient')
+        ->assertHasNoErrors();
+
+    $patient = Patient::where('name', 'Ana Lima')->first();
+    $component->assertSet('patient_id', (string) $patient->id);
+});
+
+test('quick-create patient validates required fields', function () {
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test('pages::appointment.list')
+        ->call('createQuickPatient')
+        ->set('new_patient_name', '')
+        ->set('new_patient_dob', '')
+        ->call('saveQuickPatient')
+        ->assertHasErrors(['new_patient_name', 'new_patient_dob']);
+});

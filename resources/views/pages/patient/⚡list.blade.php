@@ -126,7 +126,7 @@ new #[Title('Pacientes')] class extends Component {
             <div class="space-y-6">
                 <flux:input wire:model="name" label="Nome completo" placeholder="Ex: João Silva" />
 
-                <flux:date-picker wire:model="dob" label="Data de nascimento" selectable-header />
+                <flux:date-picker wire:model="dob" label="Data de nascimento" selectable-header locale="pt-BR" />
 
                 <flux:input wire:model="phone" label="Telefone" placeholder="(00) 00000-0000" />
 
