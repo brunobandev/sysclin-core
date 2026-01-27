@@ -196,6 +196,10 @@ class extends Component {
                         right: 'resourceTimeGridDay,timeGridWeek,dayGridMonth'
                     },
                     buttonText: {
+                        today: 'Hoje',
+                        month: 'Mês',
+                        week: 'Semana',
+                        day: 'Dia',
                         resourceTimeGridDay: 'Dia (Salas)',
                     },
                     resources: @js($this->calendarResources),
