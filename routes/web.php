@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MedicalRecordPhotoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -23,5 +24,6 @@ Route::livewire('medicacoes-cronicas', 'pages::chronic-medication.list')->name('
 Route::livewire('cargos', 'pages::role.list')->middleware('can:manage-roles')->name('role.list');
 Route::livewire('usuarios', 'pages::user.list')->middleware('can:manage-roles')->name('user.list');
 Route::livewire('consulta/{appointment}', 'pages::consultation.[Appointment]')->name('consultation.session');
+Route::get('prontuario/foto/{photo}', [MedicalRecordPhotoController::class, 'show'])->name('medical-record.photo');
 
 require __DIR__.'/settings.php';

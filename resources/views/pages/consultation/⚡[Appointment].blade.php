@@ -66,7 +66,7 @@ new #[Title('Consulta')] class extends Component {
     {
         return $this->patient->medicalRecords()
             ->with('user')
-            ->where('id', '!=', $this->appointment->medicalRecord?->id)
+            ->when($this->appointment->medicalRecord, fn ($q) => $q->where('id', '!=', $this->appointment->medicalRecord->id))
             ->latest()
             ->limit(10)
             ->get();
@@ -125,7 +125,7 @@ new #[Title('Consulta')] class extends Component {
         );
 
         foreach ($this->photos as $photo) {
-            $path = $photo->store('medical-record-photos', 'private');
+            $path = $photo->store('medical-record-photos', 'local');
 
             $record->photos()->create([
                 'path' => $path,
@@ -143,7 +143,7 @@ new #[Title('Consulta')] class extends Component {
     {
         $photo = MedicalRecordPhoto::findOrFail($photoId);
 
-        Storage::disk('private')->delete($photo->path);
+        Storage::disk('local')->delete($photo->path);
         $photo->delete();
 
         $this->appointment->refresh();
@@ -291,16 +291,27 @@ new #[Title('Consulta')] class extends Component {
                     @if ($appointment->medicalRecord && $appointment->medicalRecord->photos->count() > 0)
                         <div>
                             <flux:heading size="sm" class="mb-2">Fotos existentes</flux:heading>
-                            <div class="flex flex-col gap-2">
+                            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
                                 @foreach ($appointment->medicalRecord->photos as $photo)
-                                    <flux:file-item
-                                        :heading="$photo->original_name"
-                                        icon="photo"
-                                    >
-                                        <x-slot name="actions">
-                                            <flux:file-item.remove wire:click="deletePhoto({{ $photo->id }})" wire:confirm="Remover esta foto?" />
-                                        </x-slot>
-                                    </flux:file-item>
+                                    <div class="group relative">
+                                        <a href="{{ route('medical-record.photo', $photo) }}" target="_blank" class="block">
+                                            <img
+                                                src="{{ route('medical-record.photo', $photo) }}"
+                                                alt="{{ $photo->original_name }}"
+                                                class="aspect-square w-full rounded-lg border border-zinc-200 object-cover transition hover:opacity-80 dark:border-zinc-700"
+                                            />
+                                        </a>
+                                        <div class="mt-1 flex items-center justify-between">
+                                            <span class="truncate text-xs text-zinc-500">{{ $photo->original_name }}</span>
+                                            <flux:button
+                                                size="xs"
+                                                variant="ghost"
+                                                icon="trash"
+                                                wire:click="deletePhoto({{ $photo->id }})"
+                                                wire:confirm="Remover esta foto?"
+                                            />
+                                        </div>
+                                    </div>
                                 @endforeach
                             </div>
                         </div>
