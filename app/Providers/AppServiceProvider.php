@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Appointment;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -31,7 +32,18 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureGates(): void
     {
-        Gate::before(fn (User $user, string $ability) => $user->hasPermission($ability) ?: null);
+        Gate::before(function (User $user, string $ability) {
+            // Let specific gates handle their own logic
+            if ($ability === 'start-consultation') {
+                return null;
+            }
+
+            return $user->hasPermission($ability) ?: null;
+        });
+
+        Gate::define('start-consultation', function (User $user, Appointment $appointment) {
+            return $user->id === $appointment->user_id && $user->hasPermission('start-consultation');
+        });
     }
 
     protected function configureDefaults(): void

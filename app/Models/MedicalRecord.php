@@ -28,4 +28,9 @@ class MedicalRecord extends Model
     {
         return $this->hasMany(MedicalRecordPhoto::class);
     }
+
+    public function appointment(): BelongsTo
+    {
+        return $this->belongsTo(Appointment::class);
+    }
 }

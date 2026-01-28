@@ -23,6 +23,7 @@ class RoleAndPermissionSeeder extends Seeder
             'manage-prescription-templates' => 'Gerenciar Modelos de Receituário',
             'manage-certificate-templates' => 'Gerenciar Modelos de Atestado',
             'manage-roles' => 'Gerenciar Cargos',
+            'start-consultation' => 'Iniciar Consulta',
         ];
 
         foreach ($permissions as $name => $label) {

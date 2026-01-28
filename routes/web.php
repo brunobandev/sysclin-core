@@ -22,5 +22,6 @@ Route::livewire('modelos-atestado', 'pages::certificate-template.list')->middlew
 Route::livewire('medicacoes-cronicas', 'pages::chronic-medication.list')->name('chronic-medication.list');
 Route::livewire('cargos', 'pages::role.list')->middleware('can:manage-roles')->name('role.list');
 Route::livewire('usuarios', 'pages::user.list')->middleware('can:manage-roles')->name('user.list');
+Route::livewire('consulta/{appointment}', 'pages::consultation.[Appointment]')->name('consultation.session');
 
 require __DIR__.'/settings.php';

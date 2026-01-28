@@ -346,6 +346,13 @@ class extends Component {
             <flux:textarea wire:model="notes" label="Observações" placeholder="Detalhes adicionais..."/>
 
             <div class="flex">
+                @if ($editing && auth()->user()->can('start-consultation', $editing))
+                    @if ($editing->session_ended_at)
+                        <flux:button variant="ghost" icon="eye" href="{{ route('consultation.session', $editing) }}">Ver Consulta</flux:button>
+                    @else
+                        <flux:button variant="filled" icon="play" href="{{ route('consultation.session', $editing) }}">Iniciar Consulta</flux:button>
+                    @endif
+                @endif
                 <flux:spacer/>
                 <flux:modal.close>
                     <flux:button variant="ghost">Cancelar</flux:button>
