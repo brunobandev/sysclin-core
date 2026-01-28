@@ -34,10 +34,17 @@ class extends Component {
     public string $new_patient_phone = '';
     public string $new_patient_gender = '';
 
+    // Patient search
+    public string $patient_search = '';
+
     #[Computed]
     public function patients()
     {
-        return Patient::orderBy('name')->get();
+        return Patient::query()
+            ->when($this->patient_search, fn ($q) => $q->where('name', 'like', "%{$this->patient_search}%"))
+            ->orderBy('name')
+            ->limit(10)
+            ->get();
     }
 
     #[Computed]
@@ -94,10 +101,15 @@ class extends Component {
             ]);
     }
 
+    public function updatedPatientSearch(): void
+    {
+        unset($this->patients);
+    }
+
     public function create(?string $start = null, ?string $roomId = null): void
     {
         $this->editing = null;
-        $this->reset(['patient_id', 'user_id', 'room_id', 'type_id', 'status_id', 'health_insurance_id', 'notes']);
+        $this->reset(['patient_id', 'user_id', 'room_id', 'type_id', 'status_id', 'health_insurance_id', 'notes', 'patient_search']);
         $this->start_at = $start ?? now()->format('Y-m-d\TH:i');
         $this->end_at = $start ? Carbon::parse($start)->addHour()->format('Y-m-d\TH:i') : now()->addHour()->format('Y-m-d\TH:i');
 
@@ -105,6 +117,7 @@ class extends Component {
             $this->room_id = $roomId;
         }
 
+        unset($this->patients);
         $this->modal('appointment-form')->show();
     }
 
@@ -121,6 +134,8 @@ class extends Component {
         $this->end_at = $appointment->end_at->format('Y-m-d\TH:i');
         $this->notes = $appointment->notes ?? '';
 
+        $this->patient_search = '';
+        unset($this->patients);
         $this->modal('appointment-form')->show();
     }
 
@@ -185,6 +200,7 @@ class extends Component {
         ]);
 
         $this->patient_id = (string) $patient->id;
+        $this->patient_search = '';
 
         unset($this->patients);
 
@@ -280,7 +296,11 @@ class extends Component {
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div class="flex items-end gap-2">
                     <div class="flex-1">
-                        <flux:select wire:model="patient_id" wire:key="patient-select-{{ $patient_id }}" label="Paciente" placeholder="Selecione..." filterable>
+                        <flux:select wire:model="patient_id" wire:key="patient-select-{{ $patient_id }}" label="Paciente" placeholder="Selecione..." variant="listbox" searchable :filter="false">
+                            <x-slot name="search">
+                                <flux:select.search wire:model.live.debounce.300ms="patient_search" placeholder="Buscar paciente..." />
+                            </x-slot>
+
                             @foreach ($this->patients as $patient)
                                 <flux:select.option :value="$patient->id">{{ $patient->name }}</flux:select.option>
                             @endforeach
